@@ -40,17 +40,6 @@ client.on('message', function (topic, message) {
   var pr_msg = pr_msg_1 + pr_msg_2;
 
   if (at_pos < 0) {
-    /*var br_1 = message.indexOf('[')+1;
-    var br_2 = message.indexOf(']');
-    var user = message.slice(br_1, br_2);
-
-    if (user == username){
-      message = '> ' + message;
-    }
-    else {
-      replaceString(message.toString(), '>', '<');
-      message = '< ' + message;
-    }*/
     console.log(message.toString())
     beep()
   }
@@ -63,12 +52,10 @@ client.on('message', function (topic, message) {
 })
 
 rl.on('line', function(line){
-    //console.log(line);
-    //client.publish('chat', '[' + username + '] ' + line)
     if (line == 'quit'){
       client.publish('chat', username + ' has left the chat')
       client.end()
-      setTimeout(function(){process.exit()},100)
+      setTimeout(function(){process.exit()},500)
     }
     else {
     client.publish('chat', '[' + username + '] ' + line)
@@ -77,5 +64,5 @@ rl.on('line', function(line){
 
 process.on('SIGINT', function(){
    client.publish('chat', username + ' has left the chat')
-   setTimeout(function(){process.exit()},100)
+   setTimeout(function(){process.exit()},500)
 })
