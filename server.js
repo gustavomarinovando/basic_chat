@@ -1,6 +1,7 @@
 var mqtt = require('mqtt')
 var client  = mqtt.connect('mqtt://research.upb.edu')
 var username = process.argv[2].toString()
+var beep = require('beepbeep')
 
 var readline = require('readline');
 var rl = readline.createInterface({
@@ -12,7 +13,7 @@ var rl = readline.createInterface({
 client.on('connect', function () {
   client.subscribe('chat', function (err) {
     if (!err) {
-      client.publish('chat', username + ' has entered the chat')
+      client.publish('chat', username + ' has joined the chat')
     }
   })
 })
@@ -27,10 +28,12 @@ client.on('message', function (topic, message) {
   var pr_msg = pr_msg_1 + pr_msg_2;
   if (at_pos < 0) {
     console.log(message.toString())
+    beep()
   }
   else {
     if (cl_un == username){
-      console.log(pr_msg.toString()); 
+      console.log(pr_msg.toString());
+      beep()
     }
   }
 })
