@@ -1,0 +1,257 @@
+\documentclass{article}
+\usepackage{listings}
+\usepackage{amsmath} % Advanced math typesetting
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc} % Unicode support (Umlauts etc.)
+\usepackage[spanish,es-tabla]{babel} % Change hyphenation rules
+\decimalpoint
+\usepackage{hyperref} % Add a link to your document
+\usepackage{graphicx} % Add pictures to your document
+\usepackage{listings} % Source code formatting and highlighting
+\usepackage{blindtext}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{gensymb}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx,ragged2e,booktabs,caption}
+\usepackage[cache=false]{minted}
+\usepackage{ragged2e}
+\usepackage{etoolbox}
+%\usepackage[T1]{fontenc}
+\usepackage{geometry}
+
+\hypersetup{colorlinks=true,urlcolor=blue}
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\renewcommand{\labelitemi}{$\bullet$}
+
+\apptocmd{\frame}{}{\justifying}{}
+
+% Framed Box Minted
+\usepackage{tcolorbox}
+\usepackage{etoolbox}
+\BeforeBeginEnvironment{minted}{\begin{tcolorbox}}%
+	\AfterEndEnvironment{minted}{\end{tcolorbox}}%
+
+\begin{document}
+	\begin{titlepage}
+		\begin{center}
+			\vspace*{2cm}
+			
+			\includegraphics[scale=0.12]{../../../../../../Pictures/UPB.png}
+			\vfill
+			
+			\Huge{\textbf{TP2}}\\[5mm]
+			
+			\huge{\slshape{Teleinform\'atica}}
+			\vfill
+			
+			\line(1,0){360}\\[3mm]
+			\Huge{\textbf{Chat en Nodejs}}\\[1mm] 
+			\line(1,0){360}\\[2cm]
+			\begin{center}
+				\Large{Gustavo Marin}
+				\\
+				\Large{Alejandro Coello}
+			\end{center}
+			
+			\vfill
+			\large{\today}
+		\end{center}
+	\end{titlepage}
+\section{Objetivo}
+\noindent Definir	e implementar un simple protocolo de comunicación para una aplicación CHAT basada en MQTT.
+\section{Protocolo del chat}
+\noindent El	protocolo	está	definido	para	utilizar	un	tópico	MQTT	(‘chat’)	para	poder	interactuar	entre	
+diferentes	implementaciones.
+\\~\\
+La	aplicación	de	chat	debería	permitir	pasar	como	argumento,	el	nombre	(‘Nick	Name’)	de	la	
+persona	que	ingresa	al	chat (ver	como	procesar	process.argv en	Node.js)
+\\~\\
+Cuando	alguien	ingresa	al	chat,	anuncia	su	ingreso,	enviando	un	mensaje	con	su	Nick Name	a	
+todos.
+\subsection{Mensajes para todos}
+\noindent El formato es el siguiente:
+\\~\\
+\noindent{\fontfamily{qcr}\selectfont\textbf{[nickname] mensaje}}
+\\~\\
+El	carácter “[“ seguido	del	nick\_name	(sin	espacios),	seguido	del	carácter “]”,	seguido	de	
+un	espacio,	y	luego	el	mensaje	en	texto	hasta	el	fin	de	línea
+\subsection{Mensajes privados}
+\noindent El formato es el siguiente:
+\\~\\
+\noindent{\fontfamily{qcr}\selectfont\textbf{[nick\_name] @nick\_name\_destino mensaje}}
+\\~\\
+El	carácter “[“ seguido	del	nick\_name	(sin	espacios),	seguido	del	carácter “]”,	seguido	de	
+un	espacio,	seguido	del	carácter “@”,	inmediatamente	seguido	por	el	nick name	de	la	persona	
+con	la	que	se	quiere	chatear	en	privado {\fontfamily{qcr}\selectfont\textbf{@nick\_name\_destino}}, seguido	de	un	espacio,	y	
+luego	el	mensaje	en	texto	hasta	el	fin	de	línea.
+\\~\\
+Para	diferenciar	el	mensaje	privado,	se	deberá	utilizar	la	impresión	con	algún	color	diferente.	
+
+\subsection{Mensajes enviados y recibidos}
+\noindent Los	mensajes	enviados	por	el	usuario	deberán	ser	imprimidos,	con	el	carácter ‘mayor que”
+seguido	de	espacio “> ” y	los	mensajes	recibidos,	con	el	carácter ‘menor	que’’ seguido	de	un	
+espacio “<	“.
+
+\section{Implementaci\'on}
+Se inicio el proyecto utilizando {\fontfamily{qcr}\selectfont\textbf{npm init}} en el terminal, se llenaron los datos correspondientes.
+\\
+Se utilizaron los siguientes packages:
+\begin{itemize}
+	\item \textbf{mqtt}
+	\\
+	Es utilizado para poder utilizar el protocolo mqtt.
+	\item \textbf{readline}
+	\\
+	Es utilizado para poder leer los mensajes escritos en el terminal.
+	\item \textbf{beepbeep}
+	\\
+	Es utilizado para notificar con un \textit{beep} cuando un mensaje es recibido.
+	\item \textbf{replace-string}
+	\\
+	Es utilizado para reemplazar caracteres dentro de una variable tipo \textit{string}
+\end{itemize}
+Estos fueron instaladas utilizando {\fontfamily{qcr}\selectfont\textbf{npm install package\_name -{}-save}}
+\\~\\
+Posteriormente para poder utilizar estos packages en el script se tuvo que añadir el siguiente c\'odigo:
+\begin{minted}[obeytabs=true,tabsize=2, breaklines, breakanywhere]{javascript}
+// mqtt package
+var mqtt = require('mqtt')
+var client  = mqtt.connect('mqtt://research.upb.edu')
+// beepbeep package
+var beep = require('beepbeep')
+// replace-string package
+const replaceString = require('replace-string');
+// readline package
+var readline = require('readline');
+var rl = readline.createInterface({
+	input: process.stdin,
+	output: process.stdout,
+	terminal: false
+});
+// Variable de tipo string que contiene el nombre de usuario
+var username = process.argv[2].toString()
+\end{minted}
+\noindent Posteriormente se realizar una suscripci\'on al t\'opico chat y si se logra conectar de forma correcta se mandara un mensaje indicando que el usuario se ha conectado al chat
+\begin{minted}[obeytabs=true,tabsize=2, breaklines, breakanywhere]{javascript}
+client.on('connect', function () {
+	client.subscribe('chat', function (err) {
+		if (!err) {
+			client.publish('chat', username + ' has joined the chat')
+		}
+	})
+})
+\end{minted}
+\noindent Posteriormente se realiza una impresi\'on de los mensajes recibidos en el t\'opico chat, es aqu\'i adem\'as donde se realizar\'a la verificaci\'on si es que el mensaje es enviado o recibido, para añadir > y <, y para realizar el env\'io de mensajes privados.
+\begin{minted}[obeytabs=true,tabsize=2, breaklines, breakanywhere]{javascript}
+client.on('message', function (topic, message) {
+	var br_1 = message.indexOf('[')+1;
+	var br_2 = message.indexOf(']');
+	var user = message.slice(br_1, br_2);
+
+	if (user == username){
+		message = '> ' + message;
+	}
+	else {
+		replaceString(message.toString(), '>', '<');
+		message = '< ' + message;
+	}
+
+	var at_pos = message.indexOf("@");
+	var sp_pos = message.indexOf(" ",at_pos+1);
+	var pr_msg_1 = message.slice(0, at_pos-1);
+	var pr_msg_2 = message.slice(sp_pos, message.length);
+	var cl_un = message.slice(at_pos+1, sp_pos);
+	var pr_msg = pr_msg_1 + pr_msg_2;
+	
+	if (at_pos < 0) {
+		console.log(message.toString())
+		beep()
+	}
+	else {
+		if (cl_un == username){
+		console.log('\x1b[36m%s\x1b[0m', pr_msg.toString());
+		beep()
+		}
+	}
+})
+\end{minted}
+\clearpage
+\noindent Posteriormente se realiza la lectura de lo que se escribe en el terminal utilizando readline, añadiendo el formato que se solicit\'o, ademas de añadir la condici\'on {\fontfamily{qcr}\selectfont\textbf{quit}} para abandonar el chat.
+\begin{minted}[obeytabs=true,tabsize=2, breaklines, breakanywhere]{javascript}
+rl.on('line', function(line){
+	if (line == 'quit'){
+		client.publish('chat', username + ' has left the chat')
+		client.end()
+		setTimeout(function(){process.exit()},500)
+	}
+	else {
+		client.publish('chat', '[' + username + '] ' + line)
+	}
+})
+\end{minted}
+\noindent Finalmente se añadi\'o una condici\'on para indicar que el usuario abandon\'o el chat cuando se utiliza {\fontfamily{qcr}\selectfont\textbf{Ctrl + C}} para terminar la aplicaci\'on.
+\begin{minted}[obeytabs=true,tabsize=2, breaklines, breakanywhere]{javascript}
+process.on('SIGINT', function(){
+	client.publish('chat', username + ' has left the chat')
+	setTimeout(function(){process.exit()},500)
+})
+\end{minted}
+\clearpage
+\section{Resultados}
+A continuaci\'on se adjuntaran im\'agenes de la aplicaci\'on funcionando.
+\\~\\
+En la siguiente imagen se muestra el mensaje en el cual se anuncia que el usuario se ha conectado al chat.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\linewidth]{images/screenshot001}
+	\caption{Anuncio de conexi\'on al chat}
+	\label{fig:screenshot001}
+\end{figure}
+\\
+En la siguiente imagen se puede ver que el formato es el correcto, el nombre de usuario dentro de los brackets, seguido de un espacio y seguido del mensaje, finalmente se puede observar que los mensajes enviados tienen el s\'imbolo {\fontfamily{qcr}\selectfont\textbf{>}} y los mensajes recibidos el s\'imbolo {\fontfamily{qcr}\selectfont\textbf{<}}.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\linewidth]{images/screenshot002}
+	\caption{Aplicaci\'on Chat funcionando}
+	\label{fig:screenshot002}
+\end{figure}
+\clearpage
+\noindent En la siguiente imagen se puede ver el funcionamiento de los mensajes privados. Estos son imprimidos de un color diferente, adem\'as que solo pueden ser vistos por el destinatario correcto.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\linewidth]{images/screenshot003}
+	\caption{Mensajes Privados}
+	\label{fig:screenshot003}
+\end{figure}
+\\
+Finalmente se implemento el abandono del chat mediante el comando {\fontfamily{qcr}\selectfont\textbf{quit}}, adem\'as de mandar un mensaje de que se esta abandonando el chat.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\linewidth]{images/screenshot004}
+	\caption{Finalizaci\'on del chat con quit}
+	\label{fig:screenshot004}
+\end{figure}
+\clearpage
+\noindent El mensaje de abandono del chat es tambi\'en publicado cuando se cierra la aplicaci\'on utilizando {\fontfamily{qcr}\selectfont\textbf{Ctrl + C}}.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\linewidth]{images/screenshot005}
+	\caption{Finalizaci\'on del chat con Ctrl + C}
+	\label{fig:screenshot005}
+\end{figure}
+\section{Conclusiones}
+\begin{itemize}
+	\item La implementaci\'on del chat con el formato indicado fue exitosa.
+	\item Nodejs es una herramienta muy \'util para el desarrollo de m\'ultiples aplicaciones.
+	\item Los paquetes de javascript son muy \'utiles para el uso r\'adido de funciones espec\'ificas.
+\end{itemize}
+\end{document}
